@@ -1,0 +1,98 @@
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #000;
+  color: #fff;
+}
+
+/* LOGIN */
+.login-box {
+  max-width: 350px;
+  margin: 120px auto;
+  padding: 25px;
+  text-align: center;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+}
+
+.login-box button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  background: #d4af37;
+  border: none;
+  color: black;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#loginMsg {
+  margin-top: 10px;
+  color: rgb(255, 96, 96);
+}
+
+/* DASHBOARD */
+.hidden {
+  display: none;
+}
+
+.title {
+  margin: 30px;
+  text-align: center;
+  color: #d4af37;
+}
+
+.list {
+  max-width: 950px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: #111;
+  padding: 18px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  margin-bottom: 18px;
+}
+
+.rating {
+  color: gold;
+  font-size: 18px;
+}
+
+.item {
+  color: #d4af37;
+  margin-bottom: 5px;
+}
+
+.image-preview {
+  margin-top: 12px;
+}
+
+.image-preview img {
+  width: 120px;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+.delete-btn {
+  margin-top: 12px;
+  background: red;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+}
