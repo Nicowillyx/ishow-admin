@@ -1,80 +1,197 @@
-const backend = "https://ishow-feedback-backend-1.onrender.com";
+// ==========================
+// CONFIG
+// ==========================
+const API_BASE = "https://ishow-feedback-backend-1.onrender.com";
 
-const loginScreen = document.getElementById("loginScreen");
-const dashboard = document.getElementById("dashboard");
-const loginBtn = document.getElementById("loginBtn");
-const adminPassword = document.getElementById("adminPassword");
-const loginMsg = document.getElementById("loginMsg");
-const feedbackList = document.getElementById("feedbackList");
+// ==========================
+// ADMIN LOGIN
+// ==========================
+function loginAdmin() {
+  const key = document.getElementById("password").value.trim();
+  const errorBox = document.getElementById("login-error");
 
-// LOGIN SYSTEM
-loginBtn.addEventListener("click", async () => {
-  const key = adminPassword.value.trim();
-
-  const res = await fetch(`${backend}/api/admin-login`, {
+  fetch(`${API_BASE}/api/admin-login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key })   // VERY IMPORTANT
-  });
+    body: JSON.stringify({ key }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.ok) {
+        localStorage.setItem("ISHOW_ADMIN", "true");
+        window.location.href = "admin.html";
+      } else {
+        errorBox.textContent = "Invalid password";
+      }
+    })
+    .catch(() => {
+      errorBox.textContent = "Network error";
+    });
+}
 
-  const json = await res.json();
-
-  if (!res.ok) {
-    loginMsg.textContent = json.error || "Invalid password";
-    return;
+// Check login session
+function requireAdmin() {
+  if (!localStorage.getItem("ISHOW_ADMIN")) {
+    window.location.href = "index.html";
   }
+}
 
-  // LOGIN SUCCESS
-  loginScreen.classList.add("hidden");
-  dashboard.classList.remove("hidden");
+// Logout
+function logout() {
+  localStorage.removeItem("ISHOW_ADMIN");
+  window.location.href = "pindex.html";
+}
 
-  loadFeedback();
-});
-
-// LOAD FEEDBACK
+// ==========================
+// FETCH FEEDBACK
+// ==========================
 async function loadFeedback() {
-  feedbackList.innerHTML = "Loading...";
+  const container = document.getElementById("feedback-container");
+  const totalBox = document.getElementById("total-feedback");
+  const avgBox = document.getElementById("avg-rating");
 
-  const res = await fetch(`${backend}/api/feedbacks`);
-  const data = await res.json();
+  container.innerHTML = `<div class="loader"></div>`;
 
-  if (!data.ok) {
-    feedbackList.innerHTML = "Failed to load feedback.";
+  try {
+    const res = await fetch(`${API_BASE}/api/feedbacks`);
+    const data = await res.json();
+
+    if (!data.ok) {
+      container.innerHTML = "<p>Error loading feedback.</p>";
+      return;
+    }
+
+    let rows = data.rows;
+
+    // Compute statistics
+    totalBox.textContent = rows.length;
+    const avg =
+      rows.reduce((sum, f) => sum + f.rating, 0) / (rows.length || 1);
+    avgBox.textContent = `${avg.toFixed(1)} ⭐`;
+
+    renderFeedback(rows);
+
+    window.ALL_FEEDBACK = rows; // save globally for search/filter
+
+  } catch (err) {
+    container.innerHTML = "<p>Network error loading data.</p>";
+  }
+}
+
+// ==========================
+// RENDER FEEDBACK CARDS
+// ==========================
+function renderFeedback(list) {
+  const container = document.getElementById("feedback-container");
+
+  if (!list.length) {
+    container.innerHTML = "<p>No feedback found.</p>";
     return;
   }
 
-  feedbackList.innerHTML = "";
+  container.innerHTML = "";
 
-  data.rows.forEach(fb => {
+  list.forEach((fb) => {
     const card = document.createElement("div");
-    card.classList.add("card");
+    card.className = "feedback-card";
 
     card.innerHTML = `
-      <div class="rating">⭐ ${fb.rating}</div>
-      <div class="item">${fb.item || "No item"}</div>
-      <p>${fb.message}</p>
-      <small>${fb.name || "Anonymous"}</small><br>
+      <h3>${fb.name || "Anonymous"}</h3>
+      <p><strong>Item:</strong> ${fb.item || "None"}</p>
+      <p><strong>Rating:</strong> ${"⭐".repeat(fb.rating)}</p>
+      <p class="msg">${fb.message}</p>
 
-      ${fb.image_url ? `
-        <div class="image-preview">
-          <img src="${fb.image_url}">
-        </div>
-      ` : ""}
+      ${
+        fb.image_url
+          ? `<img src="${fb.image_url}" onclick="zoomImage('${fb.image_url}')" />`
+          : ""
+      }
 
-      <button class="delete-btn" onclick="deleteFeedback('${fb._id}')">Delete</button>
+      <button class="delete-btn" onclick="deleteFeedback('${fb._id}', this)">
+        Delete
+      </button>
     `;
 
-    feedbackList.appendChild(card);
+    container.appendChild(card);
   });
 }
 
+// ==========================
 // DELETE FEEDBACK
-async function deleteFeedback(id) {
+// ==========================
+function deleteFeedback(id, btn) {
   if (!confirm("Delete this feedback?")) return;
 
-  await fetch(`${backend}/api/delete/${id}`, {
-    method: "DELETE"
+  btn.textContent = "Deleting…";
+
+  fetch(`${API_BASE}/api/delete/${id}`, {
+    method: "DELETE",
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (data.ok) {
+        const card = btn.parentElement;
+        card.style.opacity = "0";
+        card.style.transform = "scale(0.9)";
+        setTimeout(() => card.remove(), 300);
+      } else {
+        alert("Delete failed.");
+      }
+    });
+}
+
+// ==========================
+// SEARCH
+// ==========================
+function searchFeedback() {
+  const term = document.getElementById("search").value.toLowerCase();
+
+  const filtered = window.ALL_FEEDBACK.filter((f) => {
+    return (
+      (f.name || "").toLowerCase().includes(term) ||
+      (f.message || "").toLowerCase().includes(term) ||
+      (f.item || "").toLowerCase().includes(term)
+    );
   });
 
-  loadFeedback();
+  renderFeedback(filtered);
+}
+
+// ==========================
+// FILTER BY RATING
+// ==========================
+function filterRating(star) {
+  if (star === "all") {
+    renderFeedback(window.ALL_FEEDBACK);
+    return;
+  }
+
+  const filtered = window.ALL_FEEDBACK.filter(
+    (f) => f.rating === Number(star)
+  );
+
+  renderFeedback(filtered);
+}
+
+// ==========================
+// IMAGE ZOOM MODAL
+// ==========================
+function zoomImage(url) {
+  const modal = document.createElement("div");
+  modal.className = "img-modal";
+  modal.innerHTML = `
+    <div class="img-box">
+      <img src="${url}">
+    </div>
+  `;
+  modal.onclick = () => modal.remove();
+  document.body.appendChild(modal);
+}
+
+// ==========================
+// RUN DASHBOARD
+// ==========================
+if (window.location.pathname.includes("admin.html")) {
+  requireAdmin();
+  window.onload = loadFeedback;
 }

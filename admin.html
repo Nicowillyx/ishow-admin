@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISHOW Admin — Dashboard</title>
+
+  <link rel="stylesheet" href="admin.css">
+</head>
+
+<body class="dash-body">
+
+  <nav class="nav">
+    <h1 class="logo">ISHOW Admin</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </nav>
+  
+  <div class="filter-controls">
+    <input id="search" oninput="searchFeedback()" placeholder="Search…">
+    
+    <select onchange="filterRating(this.value)">
+      <option value="all">All Ratings</option>
+      <option value="5">⭐⭐⭐⭐⭐</option>
+      <option value="4">⭐⭐⭐⭐</option>
+      <option value="3">⭐⭐⭐</option>
+      <option value="2">⭐⭐</option>
+      <option value="1">⭐</option>
+    </select>
+  </div>
+
+
+  <section class="stats">
+    <div class="stat-box">
+      <h3>Total Feedback</h3>
+      <p id="total-feedback">0</p>
+    </div>
+
+    <div class="stat-box">
+      <h3>Average Rating</h3>
+      <p id="avg-rating">0.0 ⭐</p>
+    </div>
+  </section>
+
+  <h2 class="section-title">All Feedback</h2>
+
+  <div id="feedback-container" class="feedback-grid"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
