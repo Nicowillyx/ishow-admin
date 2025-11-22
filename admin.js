@@ -39,7 +39,7 @@ function requireAdmin() {
 // Logout
 function logout() {
   localStorage.removeItem("ISHOW_ADMIN");
-  window.location.href = "pindex.html";
+  window.location.href = "index.html";
 }
 
 // ==========================
