@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../rating-backend"
+		},
+		{
+			"path": "../rating-frontend"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "rating-frontend"
+	}
+}
